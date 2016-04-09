@@ -43,8 +43,8 @@
 #define PEERASN_CMD_CNT 1000
 #define WINDOW_CMD_CNT 1024
 #define OPTION_CMD_CNT 1024
-#define RTR_CMD_CNT 2
-#define RTR_MAX_CNT 2
+#define RTR_CMD_CNT 5
+#define RTR_MAX_CNT 5
 #define BGPSTREAM_RECORD_OUTPUT_FORMAT \
   "# Record format:\n" \
   "# <dump-type>|<dump-pos>|<project>|<collector>|<status>|<dump-time>\n" \
@@ -154,8 +154,8 @@ static void usage() {
           "   -m             print info for each BGP valid record in bgpdump -m format\n"
           "   -r             print info for each BGP record (used mostly for debugging BGPStream)\n"
           "   -i             print format information before output\n"
-          "   -R <host>,<port>\n"
-          "                  enable RTR-validation with a specified cache-server"
+          "   -R <host>,<port>[,<ssh-user>,<ssh-hostkey>,<ssh-privatekey>]\n"
+          "                  enable RTR-validation with a specified cache-server via TCP or SSH"
           "\n"
 	  "   -h             print this help menu\n"
 	  "* denotes an option that can be given multiple times\n"
@@ -209,6 +209,9 @@ int main(int argc, char *argv[])
 
   char *host;
   char *port;
+  char *ssh_user;
+  char *ssh_hostkey;
+  char *ssh_privatekey;
   char *arg;
 
   int rib_period = 0;
@@ -270,12 +273,29 @@ int main(int argc, char *argv[])
     host = rtr[0];
     port = rtr[1];
 
+    #if defined(FOUND_SSH)
+    ssh_user = rtr[2];
+    ssh_hostkey = rtr[3];
+    ssh_privatekey = rtr[4];
+
+    if(ssh_user != NULL && (ssh_hostkey == NULL || ssh_privatekey == NULL)){
+      fprintf(stderr, "ERROR: The SSH-values are incomplete\n");
+      exit(-1);
+    }
+    #endif /*FOUND_SSH */
+
     if(!host||!port){
       print_err_message(RTR_MAX_CNT,"minimum","arguments");
 	  }
 
-    bgpstream_set_rtr_config(host, port, true);
+    #if !defined(FOUND_SSH)
+    if(ssh_user != NULL || ssh_hostkey != NULL || ssh_privatekey != NULL){
+      fprintf(stderr, "ERROR: RTR-Library is not compiled with SSH-Support\n");
+      exit(-1);
+    }
+    #endif /*NOTFOUND_SSH */
 
+    bgpstream_set_rtr_config(host, port, ssh_user, ssh_hostkey, ssh_privatekey, true);
 	  break;
   
 	case 'p':
