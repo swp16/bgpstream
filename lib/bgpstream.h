@@ -151,6 +151,9 @@ struct rtr_mgr_config* cfg_tr;
 struct rtr_server_configure {
   char *host;
   char *port;
+  char *ssh_user;
+  char *ssh_hostkey;
+  char *ssh_privatekey;
   bool active;
 } rtr_server_conf;
 
@@ -173,7 +176,7 @@ struct rtr_mgr_config *bgpstream_get_rtr_config();
  * @param port    the port of the cache server
  * @param active  whether the rtr-validation is enabled
  */
-int bgpstream_set_rtr_config(char *host, char *port, bool active);
+int bgpstream_set_rtr_config(char *host, char *port, char *ssh_user, char *ssh_hostkey, char *ssh_privatekey, bool active);
 
 /** Create a new BGP Stream instance
  *
