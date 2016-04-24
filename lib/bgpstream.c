@@ -428,9 +428,9 @@ int bgpstream_set_rtr_config(char *host, char *port, char *ssh_user, char *ssh_h
 int bgpstream_start(bgpstream_t *bs) {
   bgpstream_debug("BS: init start");
   if(rtr_server_conf.active){
-    cfg_tr = bgpstream_rtr_start_connection(rtr_server_conf.host, rtr_server_conf.port, NULL, NULL,
-                                            rtr_server_conf.ssh_user, rtr_server_conf.ssh_hostkey ,
-                                            rtr_server_conf.ssh_privatekey);
+    cfg_tr = bgpstream_rtr_start_connection(rtr_server_conf.host, rtr_server_conf.port,
+                                            NULL, NULL, NULL, rtr_server_conf.ssh_user,
+                                            rtr_server_conf.ssh_hostkey, rtr_server_conf.ssh_privatekey);
   }
   if(bs == NULL || (bs != NULL && bs->status != BGPSTREAM_STATUS_ALLOCATED)) {
     return 0; // nothing to init

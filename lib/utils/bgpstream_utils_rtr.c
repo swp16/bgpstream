@@ -27,16 +27,21 @@
 
 /* PUBLIC FUNCTIONS */
 
-struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, uint32_t * polling_period, uint32_t * cache_timeout, char * ssh_user, char * ssh_hostkey, char * ssh_privkey){
+struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, uint32_t * polling_period, uint32_t * cache_timeout, uint32_t * retry_inv, char * ssh_user, char * ssh_hostkey, char * ssh_privkey){
 
-	uint32_t pp = 240;
+	uint32_t pp = 30;
   if(polling_period == NULL){
     polling_period = &pp;
   }
 
-	uint32_t ct = 520;
+	uint32_t ct = 600;
   if(cache_timeout == NULL){
     cache_timeout = &ct;
+  }
+
+	uint32_t rt = 600;
+  if(retry_inv == NULL){
+    retry_inv = &rt;
   }
 
   struct tr_socket *tr = malloc(sizeof(struct tr_socket));
@@ -51,9 +56,15 @@ struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, 
         ssh_privkey,
     };
     tr_ssh_init(&config, tr);
+    /*if(tr_open(tr) == TR_ERROR){
+      fprintf(stderr,
+      "ERROR: The SSH-values entered caused an error while initialising the transport-socket\n");
+      exit(-1);
+    }*/
+
   }
 
-  else if (host != NULL){
+  else if (host != NULL && port != NULL){
     struct tr_tcp_config config = {
       host,
       port,
@@ -65,13 +76,15 @@ struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, 
   struct rtr_socket *rtr = malloc(sizeof(struct rtr_socket));
 	rtr->tr_socket = tr;
 
-  struct rtr_mgr_group *groups = malloc(sizeof(struct rtr_mgr_group));
+  struct rtr_mgr_group groups[1];
   groups[0].sockets = malloc(sizeof(struct rtr_socket*));
   groups[0].sockets_len = 1;
   groups[0].sockets[0] = rtr;
   groups[0].preference = 1;
 
-  struct rtr_mgr_config *conf = rtr_mgr_init(groups, 1, *polling_period, *cache_timeout, NULL, NULL, NULL, NULL);
+  struct rtr_mgr_config *conf;
+  int ret = rtr_mgr_init(&conf, groups, 1, *polling_period, *cache_timeout, *retry_inv, NULL, NULL, NULL, NULL);
+
   rtr_mgr_start(conf);
 
   while(!rtr_mgr_conf_in_sync(conf))

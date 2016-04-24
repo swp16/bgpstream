@@ -60,7 +60,7 @@ struct reasoned_result {
  * @param ssh_privkey     if ssh should be used, the private key to be used
  * @return a struct consisting of the configuration and the address of the transport-socket
  */
-struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, uint32_t * polling_period, uint32_t * cache_timeout, char * ssh_user, char * ssh_hostkey, char * ssh_privkey);
+struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, uint32_t * polling_period, uint32_t * cache_timeout, uint32_t * retry_inv, char * ssh_user, char * ssh_hostkey, char * ssh_privkey);
 
 /**
  * @brief Validates the origin of a BGP-Route.
