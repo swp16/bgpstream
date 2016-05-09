@@ -177,77 +177,7 @@ bgpstream_elem_t *bgpstream_record_get_next_elem(bgpstream_record_t *record) {
   if(elem == NULL || bgpstream_elem_check_filters(record->bs->filter_mgr, elem) == 1)
     {
       if(elem != NULL && bgpstream_get_rtr_config() != NULL){
-		    char prefix[INET6_ADDRSTRLEN];
-        bgpstream_pfx_t *addr_pfx;
-  
-        switch(elem->prefix.address.version)
-        {
-          case BGPSTREAM_ADDR_VERSION_IPV4:
-            addr_pfx = (bgpstream_pfx_t*)&(elem->prefix);
-            bgpstream_addr_ntop(prefix, INET_ADDRSTRLEN, &(addr_pfx->address));
-            break;
-
-          case BGPSTREAM_ADDR_VERSION_IPV6:
-            addr_pfx = (bgpstream_pfx_t*)&(elem->prefix);
-            bgpstream_addr_ntop(prefix, INET6_ADDRSTRLEN, &(addr_pfx->address));
-            break;
-
-          default:
-            addr_pfx = NULL;
-            break;
-        }
-
-        if(addr_pfx != NULL)
-        {
-          struct rtr_mgr_config *cfg_tr = bgpstream_get_rtr_config();
-          
-          uint32_t origin_asn;
-          bgpstream_as_path_seg_t *origin_seg = bgpstream_as_path_get_origin_seg(elem->aspath);
-          if (origin_seg != NULL && origin_seg->type == BGPSTREAM_AS_PATH_SEG_ASN) {
-            origin_asn = ((bgpstream_as_path_seg_asn_t*)origin_seg)->asn;
-          }
-
-          struct reasoned_result res_reasoned = 
-          bgpstream_rtr_validate_reason(cfg_tr, origin_asn, prefix, elem->prefix.mask_len);
-          printf("\nRTR-Validation: %s\n", pfxv2str(res_reasoned.result));
-          
-          if(res_reasoned.result != BGP_PFXV_STATE_NOT_FOUND){
-              elem->validation_status = pfxv2str(res_reasoned.result);
-              bgpstream_elem_asn_init(&elem->valid_asn, 2);       
-              char valid_prefix[INET6_ADDRSTRLEN];
-
-              for(int i = 0; i < res_reasoned.reason_len; i++){
-                bgpstream_elem_asn_insert(&elem->valid_asn,res_reasoned.reason[i].asn); 
-                lrtr_ip_addr_to_str(&(res_reasoned.reason[i].prefix), prefix, sizeof(prefix)); 
-                snprintf(valid_prefix, sizeof(valid_prefix), "%s%s%i", prefix,
-                         "/", res_reasoned.reason[i].max_len);
-                bgpstream_pfx_storage_t pfx;
-                bgpstream_str2pfx(valid_prefix,&pfx);
-                bgpstream_elem_pfx_insert(&elem->valid_asn, res_reasoned.reason[i].asn,
-                                          (bgpstream_pfx_t*)&pfx);
-              }
-
-              /** Print only */
-              printf("RTR-Valid ASNs:\t");
-              for (int i = 0; i < elem->valid_asn.asn_used; i++){
-                printf("%lu-", elem->valid_asn.asn_pfx[i].asn);
-                for (int j = 0; j < elem->valid_asn.asn_pfx[i].pfx_used; j++){
-                    bgpstream_pfx_snprintf(valid_prefix, INET6_ADDRSTRLEN, elem->valid_asn.asn_pfx[i].pfx[j]);
-                    printf("%s",valid_prefix);
-                    if(j != elem->valid_asn.asn_pfx[i].pfx_used-1){
-                      printf("-");
-                    }
-                }
-
-                if(i != elem->valid_asn.asn_used-1){
-                  printf(",");
-                }
-              }
-              printf("\n");
-              bgpstream_elem_asn_free(&elem->valid_asn);
-
-          }
-        }
+        bgpstream_elem_get_rpki_validation_result(elem);
       }
       return elem;
     }

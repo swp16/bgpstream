@@ -25,6 +25,7 @@
 #define __BGPSTREAM_ELEM_H
 
 #include "bgpstream_utils.h"
+#include "bgpstream_utils_as_path.h"
 
 /** @file
  *
@@ -112,37 +113,22 @@ typedef enum {
  *
  * @{ */
 
-/** A BGP Stream Elem object for valid ASNs */
-typedef struct struct_bgpstream_elem_asn_t{
+/** A BGP Stream Elem object for Annotations */
+typedef struct struct_bgpstream_elem_annotations_t{
 
-  /** ASN */
-  uint32_t asn;
+  /** RPKI validation status
+   *
+   * RPKI validation status for a given prefix
+   */
+  char *rpki_validation_status;
 
-  /** prefixes */
-  bgpstream_pfx_t **pfx;
+  /** RPKI validation result
+   *
+   * RPKI validation result (all valid ASNs) for a given prefix
+   */
+  bgpstream_rpki_validation_result_t rpki_validation_result;
 
-  /** number of prefixes */
-  size_t pfx_used;
-
-  /** maximal number of prefixes */
-  size_t pfx_size;
-
-} bgpstream_elem_asn_t;
-
-/** A BGP Stream Elem object for valid ASNs */
-typedef struct struct_bgpstream_elem_valid_asn_t{
-  
-  /** ASNs & Prefixes */
-  bgpstream_elem_asn_t *asn_pfx;
-
-  /** number of ASNs */
-  size_t asn_used;
-
-  /** maximal number of ASNs */
-  size_t asn_size;
-
-} bgpstream_elem_valid_asn_t;
-
+} bgpstream_elem_annotations_t;
 
 /** A BGP Stream Elem object */
 typedef struct struct_bgpstream_elem_t {
@@ -197,19 +183,11 @@ typedef struct struct_bgpstream_elem_t {
    */
   bgpstream_elem_peerstate_t new_state;
 
-  /** Validation status
+  /** Annotations
    *
-   * Validation_status for the given prefix
+   * All additional annotations
    */
-  char *validation_status;
-
-  /** Valid ASNs
-   *
-   * Valid ASNs for the given prefix
-   */
-  bgpstream_elem_valid_asn_t valid_asn;
-
-  //bgpstream_pfx_storage_set_t *valid_prefixes[16];
+  bgpstream_elem_annotations_t annotations;
 
 } bgpstream_elem_t;
 
@@ -285,36 +263,11 @@ int bgpstream_elem_peerstate_snprintf(char *buf, size_t len,
 char *bgpstream_elem_snprintf(char *buf, size_t len,
                               const bgpstream_elem_t *elem);
 
-/** Initialize the ASN-prefix dynamic array for the validated prefixes
- *
- * @param asn_arr       pointer to a valid-asn array
- * @param size          beginning size of the dynmaic array
- */
-void bgpstream_elem_asn_init(bgpstream_elem_valid_asn_t *asn_arr,
-                             size_t size);
-
-/** Insert a new asn to the ASN-prefix dynamic array
- *
- * @param asn_arr       pointer to a valid-asn array
- * @param asn_seg       the asn which will be added
- */
-void bgpstream_elem_asn_insert(bgpstream_elem_valid_asn_t *asn_arr,
-                               uint32_t asn_seg);
-
 /** Insert a new prefix to the ASN-prefix dynamic array
  *
- * @param asn_arr       pointer to a valid-asn array
- * @param asn_seg       the asn to which is prefix will be added
- * @param pfx           pointer to the prefix
+ * @param elem       the elem which will be validated
  */
-void bgpstream_elem_pfx_insert(bgpstream_elem_valid_asn_t *asn_arr,
-                               uint32_t asn_seg, bgpstream_pfx_t *pfx);
-
-/** Free the memory used by the ASN-prefix dynamic array
- *
- * @param asn_arr       pointer to a valid-asn array
- */
-void bgpstream_elem_asn_free(bgpstream_elem_valid_asn_t *asn_arr);
+void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem);
 
 /** @} */
 

@@ -31,12 +31,14 @@
 #include "bgpdump_lib.h"
 #include "utils.h"
 
+#include "bgpstream.h"
 #include "bgpstream_utils.h"
 
 #include "bgpstream_debug.h"
 #include "bgpstream_record.h"
 
 #include "bgpstream_elem_int.h"
+#include "utils/bgpstream_utils_rtr.h"
 
 /* ==================== PROTECTED FUNCTIONS ==================== */
 
@@ -423,81 +425,80 @@ char *bgpstream_elem_snprintf(char *buf, size_t len,
   return bgpstream_elem_custom_snprintf(buf, len, elem, 1);
 }
 
-void bgpstream_elem_asn_init(bgpstream_elem_valid_asn_t *asn_arr, size_t size) {
-  asn_arr->asn_pfx = (bgpstream_elem_asn_t *)malloc(size * sizeof(bgpstream_elem_asn_t));
-  asn_arr->asn_used = 0;
-  asn_arr->asn_size = size;
+void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem){
 
-  for (int i = 0; i < size; i++){
-      bgpstream_elem_asn_t asn_pfx;
-      asn_arr->asn_pfx[i] = asn_pfx;
-      asn_arr->asn_pfx[i].pfx = (bgpstream_pfx_t **)malloc(size * sizeof(bgpstream_pfx_t));
-      bgpstream_pfx_t pfx;
-      for (int j = 0; j < size; j++){
-          asn_arr->asn_pfx[i].pfx[j] = &pfx;
+  if(elem->annotations.rpki_validation_status != "State not found" &&
+     elem->annotations.rpki_validation_status != "valid" &&
+     elem->annotations.rpki_validation_status != "State invalid")
+  {
+    char prefix[INET6_ADDRSTRLEN];
+    bgpstream_pfx_t *addr_pfx;
+
+    switch(elem->prefix.address.version)
+    {
+      case BGPSTREAM_ADDR_VERSION_IPV4:
+        addr_pfx = (bgpstream_pfx_t*)&(elem->prefix);
+        bgpstream_addr_ntop(prefix, INET_ADDRSTRLEN, &(addr_pfx->address));
+        break;
+
+      case BGPSTREAM_ADDR_VERSION_IPV6:
+        addr_pfx = (bgpstream_pfx_t*)&(elem->prefix);
+        bgpstream_addr_ntop(prefix, INET6_ADDRSTRLEN, &(addr_pfx->address));
+        break;
+
+      default:
+        addr_pfx = NULL;
+        break;
+    }
+
+    if(addr_pfx != NULL)
+    {
+      struct rtr_mgr_config *cfg_tr = bgpstream_get_rtr_config();
+      
+      uint32_t origin_asn = 0;
+      if (bgpstream_as_path_get_origin_val(elem->aspath, &origin_asn) == -1) {
+        printf("invalid asn field %lu\n", origin_asn);
+      } 
+
+      struct reasoned_result res_reasoned = 
+      bgpstream_rtr_validate_reason(cfg_tr, origin_asn, prefix, elem->prefix.mask_len);
+      printf("\nRTR-Validation: %s\n", pfxv2str(res_reasoned.result));
+      
+      if(res_reasoned.result != BGP_PFXV_STATE_NOT_FOUND){
+          elem->annotations.rpki_validation_status = pfxv2str(res_reasoned.result);
+          bgpstream_rpki_validation_result_init(&elem->annotations.rpki_validation_result, 2);       
+          char valid_prefix[INET6_ADDRSTRLEN];
+
+          for(int i = 0; i < res_reasoned.reason_len; i++){
+            bgpstream_rpki_validation_result_insert_asn(&elem->annotations.rpki_validation_result, res_reasoned.reason[i].asn); 
+            lrtr_ip_addr_to_str(&(res_reasoned.reason[i].prefix), prefix, sizeof(prefix)); 
+            snprintf(valid_prefix, sizeof(valid_prefix), "%s%s%i", prefix,
+                     "/", res_reasoned.reason[i].max_len);
+            bgpstream_pfx_storage_t pfx;
+            bgpstream_str2pfx(valid_prefix,&pfx);
+            bgpstream_rpki_validation_result_insert_pfx(&elem->annotations.rpki_validation_result, res_reasoned.reason[i].asn,
+                                      (bgpstream_pfx_t*)&pfx);
+          }
+
+          /** Print only */
+          printf("RTR-Valid ASNs:\t");
+          for (int i = 0; i < elem->annotations.rpki_validation_result.asn_used; i++){
+            printf("%lu-", elem->annotations.rpki_validation_result.asn_pfx[i].asn);
+            for (int j = 0; j < elem->annotations.rpki_validation_result.asn_pfx[i].pfx_used; j++){
+                bgpstream_pfx_snprintf(valid_prefix, INET6_ADDRSTRLEN, elem->annotations.rpki_validation_result.asn_pfx[i].pfx[j]);
+                printf("%s",valid_prefix);
+                if(j != elem->annotations.rpki_validation_result.asn_pfx[i].pfx_used-1){
+                  printf("-");
+                }
+            }
+
+            if(i != elem->annotations.rpki_validation_result.asn_used-1){
+              printf(",");
+            }
+          }
+          printf("\n");
+          bgpstream_rpki_validation_result_free(&elem->annotations.rpki_validation_result);
       }
-      asn_arr->asn_pfx[i].pfx_used = 0;
-      asn_arr->asn_pfx[i].pfx_size = size;
-  }
-}
-
-void bgpstream_elem_asn_insert(bgpstream_elem_valid_asn_t *asn_arr, uint32_t asn_seg) {
-  bool exist = false;
-  size_t size = 2;
-  for (int i = 0; i < asn_arr->asn_size; i++){
-    if(asn_arr->asn_pfx[i].asn == asn_seg){
-      exist = true;
     }
   }
-  if(!exist){
-    if (asn_arr->asn_used == asn_arr->asn_size){
-      asn_arr->asn_size *= 2;
-      asn_arr->asn_pfx = (bgpstream_elem_asn_t *)realloc(asn_arr->asn_pfx, asn_arr->asn_size * sizeof(bgpstream_elem_asn_t));
-      for (int i = asn_arr->asn_size/2; i < asn_arr->asn_size; i++){
-        bgpstream_elem_asn_t asn_pfx;
-        asn_arr->asn_pfx[i] = asn_pfx;
-        asn_arr->asn_pfx[i].pfx = (bgpstream_pfx_t **)malloc(size * sizeof(bgpstream_pfx_t));
-        bgpstream_pfx_t pfx;
-        for (int j = 0; j < size; j++){
-            asn_arr->asn_pfx[i].pfx[j] = &pfx;
-        }
-        asn_arr->asn_pfx[i].pfx_used = 0;
-        asn_arr->asn_pfx[i].pfx_size = size;
-      }
-    }
-    asn_arr->asn_pfx[asn_arr->asn_used++].asn = asn_seg;
-  }
 }
-
-void bgpstream_elem_pfx_insert(bgpstream_elem_valid_asn_t *asn_arr, uint32_t asn_seg, bgpstream_pfx_t *pfx) {
-  int seg = 0;
-  for (int i = 0; i < asn_arr->asn_size; i++){
-      if(asn_arr->asn_pfx[i].asn == asn_seg){
-            seg = i;  
-      }
-  }
-
-  if (asn_arr->asn_pfx[seg].pfx_used == asn_arr->asn_pfx[seg].pfx_size) {
-    asn_arr->asn_pfx[seg].pfx_size *= 2;
-    asn_arr->asn_pfx[seg].pfx = (bgpstream_pfx_t **)realloc(asn_arr->asn_pfx[seg].pfx, 
-                                 asn_arr->asn_pfx[seg].pfx_size * sizeof(bgpstream_pfx_t));
-    bgpstream_pfx_t pfx;
-    for (int i = asn_arr->asn_pfx[seg].pfx_size/2+1; i < asn_arr->asn_pfx[seg].pfx_size; i++){
-        asn_arr->asn_pfx[seg].pfx[i] = &pfx;
-    }
-  }
-  asn_arr->asn_pfx[seg].pfx[asn_arr->asn_pfx[seg].pfx_used++] = pfx;
-}
-
-void bgpstream_elem_asn_free(bgpstream_elem_valid_asn_t *asn_arr) {
-  for (int i = 0; i < asn_arr->asn_size; i++){
-      free(asn_arr->asn_pfx[i].pfx);
-      asn_arr->asn_pfx[i].pfx = NULL;
-      asn_arr->asn_pfx[i].pfx_used = asn_arr->asn_pfx[i].pfx_size = 0;
-  }  
-
-  free(asn_arr->asn_pfx);
-  asn_arr->asn_pfx = NULL;
-  asn_arr->asn_used = asn_arr->asn_size = 0;
-}
-
