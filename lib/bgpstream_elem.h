@@ -120,7 +120,7 @@ typedef struct struct_bgpstream_elem_annotations_t{
    *
    * RPKI validation status for a given prefix
    */
-  char *rpki_validation_status;
+  int rpki_validation_status;
 
   /** RPKI validation result
    *
@@ -263,7 +263,13 @@ int bgpstream_elem_peerstate_snprintf(char *buf, size_t len,
 char *bgpstream_elem_snprintf(char *buf, size_t len,
                               const bgpstream_elem_t *elem);
 
-/** Insert a new prefix to the ASN-prefix dynamic array
+/** Write the string representation of the RPKI validation result of an elem
+ *
+ * @param elem       the elem whose RPKI validation result will be printed
+ */
+int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bgpstream_elem_t const *elem);
+
+/** Get the result of the RPKI-Validation for the elem
  *
  * @param elem       the elem which will be validated
  */

@@ -129,14 +129,14 @@ void bgpstream_rtr_close_connection(struct rtr_mgr_config *mgr_cfg){
 	free(socket);
 }
 
-char* pfxv2str(enum pfxv_state result){
-  char* validity_code;
+int pfxv2int(enum pfxv_state result){
+  int validity_code;
   if (result == BGP_PFXV_STATE_VALID){
-      validity_code = "valid\0";
+      validity_code = 2;
   } else if (result == BGP_PFXV_STATE_NOT_FOUND){
-      validity_code = "State not found\0";
+      validity_code = -1;
   } else if (result == BGP_PFXV_STATE_INVALID){
-      validity_code = "State invalid\0";
+      validity_code = 1;
   }
   return validity_code;
 }

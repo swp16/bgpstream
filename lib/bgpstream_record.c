@@ -177,6 +177,7 @@ bgpstream_elem_t *bgpstream_record_get_next_elem(bgpstream_record_t *record) {
   if(elem == NULL || bgpstream_elem_check_filters(record->bs->filter_mgr, elem) == 1)
     {
       if(elem != NULL && bgpstream_get_rtr_config() != NULL){
+        elem->annotations.rpki_validation_status = 0;
         bgpstream_elem_get_rpki_validation_result(elem);
       }
       return elem;

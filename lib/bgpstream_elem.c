@@ -348,6 +348,12 @@ char *bgpstream_elem_custom_snprintf(char *buf, size_t len,
       if(B_FULL)
         return NULL;
 
+      /* RPKI Validation */
+      char buf_rpki[1024];
+      c = bgpstream_elem_get_rpki_validation_result_snprintf(buf_rpki, sizeof(buf_rpki), elem);
+      strcat(buf, buf_rpki);
+      written += c;
+      buf_p += c;
       /* END OF LINE */
       break;
 
@@ -425,11 +431,42 @@ char *bgpstream_elem_snprintf(char *buf, size_t len,
   return bgpstream_elem_custom_snprintf(buf, len, elem, 1);
 }
 
-void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem){
+int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bgpstream_elem_t const *elem)
+{
+  char result_output[1024];
 
-  if(elem->annotations.rpki_validation_status != "State not found" &&
-     elem->annotations.rpki_validation_status != "valid" &&
-     elem->annotations.rpki_validation_status != "State invalid")
+  if(elem->annotations.rpki_validation_status != -1){
+    snprintf(result_output, sizeof(result_output), "%i;", elem->annotations.rpki_validation_status);
+    for (int i = 0; i < elem->annotations.rpki_validation_result.asn_used; i++){
+      char asn[1024];
+      snprintf(asn, sizeof(asn), "%"PRIu32"-", elem->annotations.rpki_validation_result.asn_pfx[i].asn);
+      strcat(result_output, asn);
+      for (int j = 0; j < elem->annotations.rpki_validation_result.asn_pfx[i].pfx_used; j++){
+          char valid_prefix[INET6_ADDRSTRLEN]; 
+          bgpstream_pfx_snprintf(valid_prefix, INET6_ADDRSTRLEN, elem->annotations.rpki_validation_result.asn_pfx[i].pfx[j]);
+          strcat(result_output, valid_prefix);
+          if(j != elem->annotations.rpki_validation_result.asn_pfx[i].pfx_used - 1){
+            strcat(result_output, " ");
+          }
+      }
+
+      if(i != elem->annotations.rpki_validation_result.asn_used - 1){
+        strcat(result_output, ";");
+      }
+    }
+  }
+  else {
+    snprintf(result_output, sizeof(result_output), "%i", elem->annotations.rpki_validation_status);
+  }
+
+  bgpstream_rpki_validation_result_free(&elem->annotations.rpki_validation_result);
+  return snprintf(buf, len, "%s", result_output);
+
+}
+
+void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem)
+{
+  if(elem->annotations.rpki_validation_status == 0)
   {
     char prefix[INET6_ADDRSTRLEN];
     bgpstream_pfx_t *addr_pfx;
@@ -456,48 +493,27 @@ void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem){
       struct rtr_mgr_config *cfg_tr = bgpstream_get_rtr_config();
       
       uint32_t origin_asn = 0;
-      if (bgpstream_as_path_get_origin_val(elem->aspath, &origin_asn) == -1) {
-        printf("invalid asn field %lu\n", origin_asn);
-      } 
+      bgpstream_as_path_seg_t *origin_seg = bgpstream_as_path_get_origin_seg(elem->aspath);
+      if (origin_seg != NULL && origin_seg->type == BGPSTREAM_AS_PATH_SEG_ASN) {
+        origin_asn = ((bgpstream_as_path_seg_asn_t*)origin_seg)->asn;
+      }
 
-      struct reasoned_result res_reasoned = 
-      bgpstream_rtr_validate_reason(cfg_tr, origin_asn, prefix, elem->prefix.mask_len);
-      printf("\nRTR-Validation: %s\n", pfxv2str(res_reasoned.result));
-      
-      if(res_reasoned.result != BGP_PFXV_STATE_NOT_FOUND){
-          elem->annotations.rpki_validation_status = pfxv2str(res_reasoned.result);
+      struct reasoned_result res_reasoned = bgpstream_rtr_validate_reason(cfg_tr, origin_asn, prefix, elem->prefix.mask_len);
+      elem->annotations.rpki_validation_status = pfxv2int(res_reasoned.result);
+
+      if(elem->annotations.rpki_validation_status != -1){
           bgpstream_rpki_validation_result_init(&elem->annotations.rpki_validation_result, 2);       
           char valid_prefix[INET6_ADDRSTRLEN];
 
           for(int i = 0; i < res_reasoned.reason_len; i++){
             bgpstream_rpki_validation_result_insert_asn(&elem->annotations.rpki_validation_result, res_reasoned.reason[i].asn); 
             lrtr_ip_addr_to_str(&(res_reasoned.reason[i].prefix), prefix, sizeof(prefix)); 
-            snprintf(valid_prefix, sizeof(valid_prefix), "%s%s%i", prefix,
-                     "/", res_reasoned.reason[i].max_len);
+            snprintf(valid_prefix, sizeof(valid_prefix), "%s/%i", prefix, res_reasoned.reason[i].max_len);
             bgpstream_pfx_storage_t pfx;
             bgpstream_str2pfx(valid_prefix,&pfx);
             bgpstream_rpki_validation_result_insert_pfx(&elem->annotations.rpki_validation_result, res_reasoned.reason[i].asn,
                                       (bgpstream_pfx_t*)&pfx);
           }
-
-          /** Print only */
-          printf("RTR-Valid ASNs:\t");
-          for (int i = 0; i < elem->annotations.rpki_validation_result.asn_used; i++){
-            printf("%lu-", elem->annotations.rpki_validation_result.asn_pfx[i].asn);
-            for (int j = 0; j < elem->annotations.rpki_validation_result.asn_pfx[i].pfx_used; j++){
-                bgpstream_pfx_snprintf(valid_prefix, INET6_ADDRSTRLEN, elem->annotations.rpki_validation_result.asn_pfx[i].pfx[j]);
-                printf("%s",valid_prefix);
-                if(j != elem->annotations.rpki_validation_result.asn_pfx[i].pfx_used-1){
-                  printf("-");
-                }
-            }
-
-            if(i != elem->annotations.rpki_validation_result.asn_used-1){
-              printf(",");
-            }
-          }
-          printf("\n");
-          bgpstream_rpki_validation_result_free(&elem->annotations.rpki_validation_result);
       }
     }
   }

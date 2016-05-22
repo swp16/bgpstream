@@ -41,7 +41,7 @@
 struct reasoned_result {
 	struct pfx_record *reason;
 	enum pfxv_state result;
-    unsigned int reason_len;
+  unsigned int reason_len;
 };
 
 /**
@@ -91,11 +91,11 @@ struct reasoned_result bgpstream_rtr_validate_reason(struct rtr_mgr_config* mgr_
  */
 void bgpstream_rtr_close_connection(struct rtr_mgr_config* mgr_cfg);
 
-/** Converts PFVX_STATE to string
+/** Converts PFVX_STATE to int
  *
  * @param result Outcome of the validation
  */
-char* pfxv2str(enum pfxv_state result);
+int pfxv2int(enum pfxv_state result);
 
 
 /** @} */

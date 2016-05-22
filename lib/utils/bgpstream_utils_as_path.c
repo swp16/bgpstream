@@ -637,16 +637,25 @@ void bgpstream_rpki_validation_result_insert_pfx(bgpstream_rpki_validation_resul
       }
   }
 
-  if (asn_arr->asn_pfx[seg].pfx_used == asn_arr->asn_pfx[seg].pfx_size) {
-    asn_arr->asn_pfx[seg].pfx_size *= 2;
-    asn_arr->asn_pfx[seg].pfx = (bgpstream_pfx_t **)realloc(asn_arr->asn_pfx[seg].pfx, 
-                                 asn_arr->asn_pfx[seg].pfx_size * sizeof(bgpstream_pfx_t));
-    bgpstream_pfx_t pfx;
-    for (int i = asn_arr->asn_pfx[seg].pfx_size/2+1; i < asn_arr->asn_pfx[seg].pfx_size; i++){
-        asn_arr->asn_pfx[seg].pfx[i] = &pfx;
+
+  bool exist = false;
+  for (int i = 0; i < asn_arr->asn_pfx[seg].pfx_used; i++){
+    if(asn_arr->asn_pfx[seg].pfx[i] == pfx){
+      exist = true;
     }
   }
+  if(!exist){
+    if (asn_arr->asn_pfx[seg].pfx_used == asn_arr->asn_pfx[seg].pfx_size) {
+      asn_arr->asn_pfx[seg].pfx_size *= 2;
+      asn_arr->asn_pfx[seg].pfx = (bgpstream_pfx_t **)realloc(asn_arr->asn_pfx[seg].pfx, 
+                                   asn_arr->asn_pfx[seg].pfx_size * sizeof(bgpstream_pfx_t));
+      bgpstream_pfx_t pfx_d;
+      for (int i = asn_arr->asn_pfx[seg].pfx_size/2+1; i < asn_arr->asn_pfx[seg].pfx_size; i++){
+          asn_arr->asn_pfx[seg].pfx[i] = &pfx_d;
+      }
+    }
   asn_arr->asn_pfx[seg].pfx[asn_arr->asn_pfx[seg].pfx_used++] = pfx;
+  }
 }
 
 void bgpstream_rpki_validation_result_free(bgpstream_rpki_validation_result_t *asn_arr) {
