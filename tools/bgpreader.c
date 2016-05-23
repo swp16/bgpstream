@@ -289,9 +289,8 @@ int main(int argc, char *argv[])
 	  }
 
     #if !defined(FOUND_SSH)
-    if(ssh_user != NULL || ssh_hostkey != NULL || ssh_privatekey != NULL){
-      fprintf(stderr, "ERROR: RTR-Library is not compiled with SSH-Support\n");
-      exit(-1);
+    if(rtr[2] != NULL || rtr[3] != NULL || rtr[4] != NULL){
+      fprintf(stderr, "Warning: RTR-Library is not compiled with SSH-Support, TCP is used instead\n");
     }
     #endif /*NOTFOUND_SSH */
 

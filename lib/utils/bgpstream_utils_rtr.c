@@ -46,6 +46,7 @@ struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, 
 
   struct tr_socket *tr = malloc(sizeof(struct tr_socket));
   if (host != NULL && ssh_user != NULL && ssh_hostkey != NULL && ssh_privkey != NULL){
+    #if defined(FOUND_SSH)
     int port = port;
     struct tr_ssh_config config = {
         host,
@@ -56,6 +57,7 @@ struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, 
         ssh_privkey,
     };
     tr_ssh_init(&config, tr);
+    #endif
     /*if(tr_open(tr) == TR_ERROR){
       fprintf(stderr,
       "ERROR: The SSH-values entered caused an error while initialising the transport-socket\n");
