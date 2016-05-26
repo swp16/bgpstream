@@ -22,8 +22,10 @@
  */
 
 #include <stdlib.h>
-#include "rtrlib/rtrlib.h"
+#include <stdio.h>
 #include "bgpstream_utils_rtr.h"
+#include "config.h"
+#include "rtrlib/rtrlib.h"
 
 /* PUBLIC FUNCTIONS */
 
@@ -58,12 +60,11 @@ struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, 
     };
     tr_ssh_init(&config, tr);
     #endif
-    /*if(tr_open(tr) == TR_ERROR){
+    if(tr_open(tr) == TR_ERROR){
       fprintf(stderr,
       "ERROR: The SSH-values entered caused an error while initialising the transport-socket\n");
       exit(-1);
-    }*/
-
+    }
   }
 
   else if (host != NULL && port != NULL){
