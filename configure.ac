@@ -260,16 +260,21 @@ AC_DEFINE_UNQUOTED([ED_PLUGIN_INIT_ALL_ENABLED], $ED_PLUGIN_INIT_ALL_ENABLED,
 # Extra tests or config needed for plugins should go below here                #
 #------------------------------------------------------------------------------#
 AC_MSG_NOTICE([----------------------------------])
+
+AC_MSG_CHECKING([whether the RTR library is available])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include "rtrlib/rtrlib.h"]])],
+      [AC_MSG_RESULT(yes)
+       AC_DEFINE(FOUND_RTR,,found_rtr)],
+       AC_MSG_RESULT(no)
+  )
+
 AC_MSG_CHECKING([whether the RTR library is compiled with SSH])
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include "rtrlib/rtrlib.h"]],
                         [[struct tr_ssh_config config;]])],
       [AC_MSG_RESULT(yes)
-       FOUND_SSH=1;],
-      [AC_MSG_RESULT(no)
-       FOUND_SSH=0;]
+       AC_DEFINE(FOUND_SSH,,found_ssh)],
+       AC_MSG_RESULT(no)
   )
-
-AC_MSG_NOTICE([----------------------------------])
 
 # we may want to come back later and add compile-time configuration for things
 # like datastructure providers, but for now it will all get compiled
