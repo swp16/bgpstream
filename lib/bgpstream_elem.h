@@ -263,6 +263,7 @@ int bgpstream_elem_peerstate_snprintf(char *buf, size_t len,
 char *bgpstream_elem_snprintf(char *buf, size_t len,
                               const bgpstream_elem_t *elem);
 
+#if defined(FOUND_RTR)
 /** Write the string representation of the RPKI validation result of an elem
  *
  * @param elem       the elem whose RPKI validation result will be printed
@@ -274,6 +275,7 @@ int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bg
  * @param elem       the elem which will be validated
  */
 void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem);
+#endif
 
 /** @} */
 

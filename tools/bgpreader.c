@@ -256,6 +256,7 @@ int main(int argc, char *argv[])
 
 	case 'R':
 
+    #if defined(FOUND_RTR)
     rtr_cnt++;
     if(rtr_cnt == RTR_MAX_CNT) {
         print_err_message(RTR_MAX_CNT-1,"maximum","parameters");
@@ -295,6 +296,7 @@ int main(int argc, char *argv[])
     #endif /*NOTFOUND_SSH */
 
     bgpstream_set_rtr_config(host, port, ssh_user, ssh_hostkey, ssh_privatekey, true);
+    #endif  /*FOUND_RTR */
 	  break;
   
 	case 'p':

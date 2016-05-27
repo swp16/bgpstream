@@ -348,12 +348,14 @@ char *bgpstream_elem_custom_snprintf(char *buf, size_t len,
       if(B_FULL)
         return NULL;
 
+      #if defined(FOUND_RTR)
       /* RPKI Validation */
       char buf_rpki[1024];
       c = bgpstream_elem_get_rpki_validation_result_snprintf(buf_rpki, sizeof(buf_rpki), elem);
       strcat(buf, buf_rpki);
       written += c;
       buf_p += c;
+      #endif
       /* END OF LINE */
       break;
 
@@ -431,6 +433,7 @@ char *bgpstream_elem_snprintf(char *buf, size_t len,
   return bgpstream_elem_custom_snprintf(buf, len, elem, 1);
 }
 
+#if defined(FOUND_RTR)
 int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bgpstream_elem_t const *elem)
 {
   char result_output[1024];
@@ -518,3 +521,4 @@ void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem)
     }
   }
 }
+#endif

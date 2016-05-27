@@ -24,8 +24,8 @@
 #ifndef __BGPSTREAM_UTILS_RTR_H
 #define __BGPSTREAM_UTILS_RTR_H
 
+#if defined(FOUND_RTR)
 #include "rtrlib/rtrlib.h"
-
 
 /** @file
  *
@@ -97,7 +97,7 @@ void bgpstream_rtr_close_connection(struct rtr_mgr_config* mgr_cfg);
  */
 int pfxv2int(enum pfxv_state result);
 
-
 /** @} */
 
+#endif /*__RTR*/
 #endif /*__BGPSTREAM_UTILS_RTR_H*/

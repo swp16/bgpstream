@@ -176,10 +176,12 @@ bgpstream_elem_t *bgpstream_record_get_next_elem(bgpstream_record_t *record) {
    * bgpstream_record_get_next_elem(record) */
   if(elem == NULL || bgpstream_elem_check_filters(record->bs->filter_mgr, elem) == 1)
     {
+      #if defined(FOUND_RTR)
       if(elem != NULL && bgpstream_get_rtr_config() != NULL){
         elem->annotations.rpki_validation_status = 0;
         bgpstream_elem_get_rpki_validation_result(elem);
       }
+      #endif
       return elem;
     }
 

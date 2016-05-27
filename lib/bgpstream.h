@@ -146,6 +146,7 @@ typedef struct struct_bgpstream_data_interface_option
 
 } bgpstream_data_interface_option_t;
 
+#if defined(FOUND_RTR)
 struct rtr_mgr_config* cfg_tr;
 
 struct rtr_server_configure {
@@ -177,6 +178,7 @@ struct rtr_mgr_config *bgpstream_get_rtr_config();
  * @param active  whether the rtr-validation is enabled
  */
 int bgpstream_set_rtr_config(char *host, char *port, char *ssh_user, char *ssh_hostkey, char *ssh_privatekey, bool active);
+#endif
 
 /** Create a new BGP Stream instance
  *

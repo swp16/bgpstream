@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include "bgpstream_utils_rtr.h"
 #include "config.h"
+
+#if defined(FOUND_RTR)
 #include "rtrlib/rtrlib.h"
 
 /* PUBLIC FUNCTIONS */
@@ -144,3 +146,4 @@ int pfxv2int(enum pfxv_state result){
   return validity_code;
 }
 
+#endif
