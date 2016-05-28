@@ -255,6 +255,10 @@ int main(int argc, char *argv[])
 	{
 
 	case 'R':
+    #if !defined(FOUND_RTR)
+    fprintf(stderr, "ERROR: Could not validate the BGPStream if RTRlib is not installed\n");
+    exit(-1);
+    #endif
 
     #if defined(FOUND_RTR)
     rtr_cnt++;
