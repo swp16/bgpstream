@@ -33,22 +33,22 @@
 
 struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, uint32_t * polling_period, uint32_t * cache_timeout, uint32_t * retry_inv, char * ssh_user, char * ssh_hostkey, char * ssh_privkey){
 
-	uint32_t pp = 30;
+  uint32_t pp = 30;
   if(polling_period == NULL){
     polling_period = &pp;
   }
 
-	uint32_t ct = 600;
+  uint32_t ct = 600;
   if(cache_timeout == NULL){
     cache_timeout = &ct;
   }
 
-	uint32_t rt = 600;
+  uint32_t rt = 600;
   if(retry_inv == NULL){
     retry_inv = &rt;
   }
 
-  struct tr_socket *tr = malloc(sizeof(struct tr_socket));
+   struct tr_socket *tr = malloc(sizeof(struct tr_socket));
   if (host != NULL && ssh_user != NULL && ssh_hostkey != NULL && ssh_privkey != NULL){
     #if defined(FOUND_SSH)
     int port = port;
@@ -79,7 +79,7 @@ struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, 
   }
 
   struct rtr_socket *rtr = malloc(sizeof(struct rtr_socket));
-	rtr->tr_socket = tr;
+  rtr->tr_socket = tr;
 
   struct rtr_mgr_group groups[1];
   groups[0].sockets = malloc(sizeof(struct rtr_socket*));
@@ -110,38 +110,38 @@ struct reasoned_result bgpstream_rtr_validate_reason(struct rtr_mgr_config* mgr_
   struct lrtr_ip_addr pref;
   lrtr_ip_str_to_addr(prefix, &pref);
   enum pfxv_state result;
-	struct pfx_record* reason = NULL;
-	unsigned int reason_len = 0;
+  struct pfx_record* reason = NULL;
+  unsigned int reason_len = 0;
 
-	pfx_table_validate_r(mgr_cfg->groups[0].sockets[0]->pfx_table, &reason, &reason_len, asn, &pref, mask_len, &result);
+  pfx_table_validate_r(mgr_cfg->groups[0].sockets[0]->pfx_table, &reason, &reason_len, asn, &pref, mask_len, &result);
 
-	struct reasoned_result reasoned_res;
-	reasoned_res.reason = reason;
-	reasoned_res.reason_len = reason_len;
-	reasoned_res.result = result; 
+  struct reasoned_result reasoned_res;
+  reasoned_res.reason = reason;
+  reasoned_res.reason_len = reason_len;
+  reasoned_res.result = result; 
 
-	return(reasoned_res);
+  return(reasoned_res);
 }
 
 void bgpstream_rtr_close_connection(struct rtr_mgr_config *mgr_cfg){
-	struct tr_socket *tr = mgr_cfg->groups[0].sockets[0]->tr_socket;
-	struct rtr_socket* rtr = mgr_cfg->groups[0].sockets[0];
-	struct rtr_socket** socket = mgr_cfg->groups[0].sockets;
-	rtr_mgr_stop(mgr_cfg);
-	rtr_mgr_free(mgr_cfg);
-	free(tr);
-	free(rtr);
-	free(socket);
+  struct tr_socket *tr = mgr_cfg->groups[0].sockets[0]->tr_socket;
+  struct rtr_socket* rtr = mgr_cfg->groups[0].sockets[0];
+  struct rtr_socket** socket = mgr_cfg->groups[0].sockets;
+  rtr_mgr_stop(mgr_cfg);
+  rtr_mgr_free(mgr_cfg);
+  free(tr);
+  free(rtr);
+  free(socket);
 }
 
 int pfxv2int(enum pfxv_state result){
   int validity_code;
   if (result == BGP_PFXV_STATE_VALID){
-      validity_code = 2;
+    validity_code = 2;
   } else if (result == BGP_PFXV_STATE_NOT_FOUND){
-      validity_code = -1;
+    validity_code = -1;
   } else if (result == BGP_PFXV_STATE_INVALID){
-      validity_code = 1;
+    validity_code = 1;
   }
   return validity_code;
 }
