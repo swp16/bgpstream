@@ -24,6 +24,8 @@
 #ifndef __BGPSTREAM_UTILS_RTR_H
 #define __BGPSTREAM_UTILS_RTR_H
 
+#include "config.h"
+
 #if defined(FOUND_RTR)
 #include "rtrlib/rtrlib.h"
 
