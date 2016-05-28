@@ -39,8 +39,8 @@
 /** @} */
 
 struct reasoned_result {
-	struct pfx_record *reason;
-	enum pfxv_state result;
+  struct pfx_record *reason;
+  enum pfxv_state result;
   unsigned int reason_len;
 };
 
