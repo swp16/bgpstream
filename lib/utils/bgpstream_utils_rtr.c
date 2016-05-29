@@ -137,11 +137,11 @@ void bgpstream_rtr_close_connection(struct rtr_mgr_config *mgr_cfg){
 int pfxv2int(enum pfxv_state result){
   int validity_code;
   if (result == BGP_PFXV_STATE_VALID){
-    validity_code = 2;
+    validity_code = 1;
   } else if (result == BGP_PFXV_STATE_NOT_FOUND){
     validity_code = -1;
   } else if (result == BGP_PFXV_STATE_INVALID){
-    validity_code = 1;
+    validity_code = 0;
   }
   return validity_code;
 }

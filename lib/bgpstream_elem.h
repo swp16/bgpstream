@@ -120,7 +120,7 @@ typedef struct struct_bgpstream_elem_annotations_t{
    *
    * RPKI validation status for a given prefix
    */
-  int rpki_validation_status;
+  int * rpki_validation_status;
 
   /** RPKI validation result
    *
