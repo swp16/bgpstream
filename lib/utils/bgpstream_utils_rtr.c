@@ -48,7 +48,7 @@ struct rtr_mgr_config* bgpstream_rtr_start_connection(char * host, char * port, 
     retry_inv = &rt;
   }
 
-   struct tr_socket *tr = malloc(sizeof(struct tr_socket));
+  struct tr_socket *tr = malloc(sizeof(struct tr_socket));
   if (host != NULL && ssh_user != NULL && ssh_hostkey != NULL && ssh_privkey != NULL){
     #if defined(FOUND_SSH)
     int port = port;
@@ -129,6 +129,7 @@ void bgpstream_rtr_close_connection(struct rtr_mgr_config *mgr_cfg){
   struct rtr_socket** socket = mgr_cfg->groups[0].sockets;
   rtr_mgr_stop(mgr_cfg);
   rtr_mgr_free(mgr_cfg);
+  tr_free(tr);
   free(tr);
   free(rtr);
   free(socket);
