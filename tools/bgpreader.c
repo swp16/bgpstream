@@ -266,6 +266,10 @@ int main(int argc, char *argv[])
         print_err_message(RTR_MAX_CNT-1,"maximum","parameters");
 	  }
     
+    for(int i = 0; i < RTR_MAX_CNT; i++){
+      rtr[i] = NULL;
+    }
+
     arg = strtok(optarg, ","); 
     while(arg != NULL) {
       rtr[rtr_cnt_arg++] = arg;
