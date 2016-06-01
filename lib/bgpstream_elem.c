@@ -494,9 +494,9 @@ void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem)
       }
 
       struct reasoned_result res_reasoned = bgpstream_rtr_validate_reason(cfg_tr, origin_asn, prefix, elem->prefix.mask_len);
-      int vld_rst = pfxv2int(res_reasoned.result);
-      elem->annotations.rpki_validation_status = &vld_rst;
-
+      int *vld_rst = malloc(sizeof(int));
+      *vld_rst = pfxv2int(res_reasoned.result);
+      elem->annotations.rpki_validation_status = vld_rst;
       if(*elem->annotations.rpki_validation_status != -1){
         bgpstream_rpki_validation_result_init(&elem->annotations.rpki_validation_result, 2);       
         char valid_prefix[INET6_ADDRSTRLEN];
