@@ -437,8 +437,9 @@ char *bgpstream_elem_snprintf(char *buf, size_t len,
 int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bgpstream_elem_t const *elem)
 {
   char result_output[1024];
-  if(*elem->annotations.rpki_validation_status != -1){
-    strcat(result_output, *elem->annotations.rpki_validation_status == 0 ? "invalid;" : "valid;");
+    if(elem->annotations.rpki_validation_status != BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND){
+    snprintf(result_output, sizeof(result_output), "%s%s", result_output, elem->annotations.rpki_validation_status == BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_INVALID ? "invalid;" : "valid;");
+        
     for (int i = 0; i < elem->annotations.rpki_validation_result.asn_used; i++){
       char asn[1024];
       snprintf(asn, sizeof(asn), "%"PRIu32"-", elem->annotations.rpki_validation_result.asn_pfx[i].asn);
@@ -462,7 +463,7 @@ int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bg
 
 void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem)
 {
-  if(elem->annotations.rpki_validation_status == NULL)
+  if(elem->annotations.rpki_validation_status == BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED)
   {
     char prefix[INET6_ADDRSTRLEN];
     bgpstream_pfx_t *addr_pfx;
@@ -494,10 +495,18 @@ void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem)
       }
 
       struct reasoned_result res_reasoned = bgpstream_rtr_validate_reason(cfg_tr, origin_asn, prefix, elem->prefix.mask_len);
-      int *vld_rst = malloc(sizeof(int));
-      *vld_rst = pfxv2int(res_reasoned.result);
-      elem->annotations.rpki_validation_status = vld_rst;
-      if(*elem->annotations.rpki_validation_status != -1){
+      
+      if (res_reasoned.result == BGP_PFXV_STATE_VALID){
+          elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_VALID;
+      }
+      if (res_reasoned.result == BGP_PFXV_STATE_NOT_FOUND){
+          elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND;
+      }
+      if (res_reasoned.result == BGP_PFXV_STATE_INVALID){
+          elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_INVALID;
+      }
+        
+      if(elem->annotations.rpki_validation_status != BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND){
         bgpstream_rpki_validation_result_init(&elem->annotations.rpki_validation_result, 2);       
         char valid_prefix[INET6_ADDRSTRLEN];
 

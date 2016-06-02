@@ -178,7 +178,7 @@ bgpstream_elem_t *bgpstream_record_get_next_elem(bgpstream_record_t *record) {
     {
       #if defined(FOUND_RTR)
       if(elem != NULL && bgpstream_get_rtr_config() != NULL){
-        elem->annotations.rpki_validation_status = NULL;
+        elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED;
         bgpstream_elem_get_rpki_validation_result(elem);
       }
       #endif

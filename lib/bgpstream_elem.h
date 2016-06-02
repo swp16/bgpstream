@@ -106,6 +106,24 @@ typedef enum {
 
 } bgpstream_elem_type_t;
 
+/** Validation types */
+typedef enum {
+
+  /** Valid */
+  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_VALID          = 1,
+
+  /** Invalid */
+  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_INVALID        = 0,
+
+  /** Not found */
+  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND       = -1,
+
+  /** Not validated */
+  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED   = 2,
+
+
+} bgpstream_validation_status_type_t;
+
 /** @} */
 
 /**
@@ -120,7 +138,7 @@ typedef struct struct_bgpstream_elem_annotations_t{
    *
    * RPKI validation status for a given prefix
    */
-  int * rpki_validation_status;
+  bgpstream_validation_status_type_t rpki_validation_status;
 
   /** RPKI validation result
    *
