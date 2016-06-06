@@ -436,25 +436,28 @@ char *bgpstream_elem_snprintf(char *buf, size_t len,
 #if defined(FOUND_RTR)
 int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bgpstream_elem_t const *elem)
 {
-  char result_output[1024];
-    if(elem->annotations.rpki_validation_status != BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND){
-    snprintf(result_output, sizeof(result_output), "%s%s", result_output, elem->annotations.rpki_validation_status == BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_INVALID ? "invalid;" : "valid;");
-        
+  char result_output[1024] = "";
+  if(elem->annotations.rpki_validation_status != BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND){
+    snprintf(result_output, sizeof(result_output), "%s%s", result_output, 
+             elem->annotations.rpki_validation_status == BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_INVALID ? "invalid;" : "valid;");
     for (int i = 0; i < elem->annotations.rpki_validation_result.asn_used; i++){
       char asn[1024];
-      snprintf(asn, sizeof(asn), "%"PRIu32"-", elem->annotations.rpki_validation_result.asn_pfx[i].asn);
+      snprintf(asn, sizeof(asn), "%"PRIu32",", elem->annotations.rpki_validation_result.asn_pfx[i].asn);
       strcat(result_output, asn);
       for (int j = 0; j < elem->annotations.rpki_validation_result.asn_pfx[i].pfx_used; j++){
           char valid_prefix[INET6_ADDRSTRLEN]; 
-          bgpstream_pfx_snprintf(valid_prefix, INET6_ADDRSTRLEN, elem->annotations.rpki_validation_result.asn_pfx[i].pfx[j]);
+          bgpstream_pfx_snprintf(valid_prefix, INET6_ADDRSTRLEN, 
+                                 (bgpstream_pfx_t *)&elem->annotations.rpki_validation_result.asn_pfx[i].pfxs[j].pfx);
           strcat(result_output, valid_prefix);
+          snprintf(asn, sizeof(asn), "-%"PRIu8, elem->annotations.rpki_validation_result.asn_pfx[i].pfxs[j].max_pfx_len);
+          strcat(result_output, asn); 
           strcat(result_output, j != elem->annotations.rpki_validation_result.asn_pfx[i].pfx_used - 1 ? " ":"");
       }
       strcat(result_output, i != elem->annotations.rpki_validation_result.asn_used - 1 ? ";":"");
     }
   }
   else {
-    strcat(result_output, "notfound");
+    snprintf(result_output, sizeof(result_output), "%s%s", result_output, "notfound");
   }
 
   bgpstream_rpki_validation_result_free(&elem->annotations.rpki_validation_result);
@@ -495,17 +498,17 @@ void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem)
       }
 
       struct reasoned_result res_reasoned = bgpstream_rtr_validate_reason(cfg_tr, origin_asn, prefix, elem->prefix.mask_len);
-      
+
       if (res_reasoned.result == BGP_PFXV_STATE_VALID){
-          elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_VALID;
+        elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_VALID;
       }
       if (res_reasoned.result == BGP_PFXV_STATE_NOT_FOUND){
-          elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND;
+        elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND;
       }
       if (res_reasoned.result == BGP_PFXV_STATE_INVALID){
-          elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_INVALID;
+        elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_INVALID;
       }
-        
+
       if(elem->annotations.rpki_validation_status != BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND){
         bgpstream_rpki_validation_result_init(&elem->annotations.rpki_validation_result, 2);       
         char valid_prefix[INET6_ADDRSTRLEN];
@@ -513,10 +516,11 @@ void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem)
         for(int i = 0; i < res_reasoned.reason_len; i++){
           bgpstream_rpki_validation_result_insert_asn(&elem->annotations.rpki_validation_result, res_reasoned.reason[i].asn); 
           lrtr_ip_addr_to_str(&(res_reasoned.reason[i].prefix), prefix, sizeof(prefix)); 
-          snprintf(valid_prefix, sizeof(valid_prefix), "%s/%i", prefix, res_reasoned.reason[i].max_len);
-          bgpstream_pfx_storage_t pfx;
-          bgpstream_str2pfx(valid_prefix,&pfx);
-          bgpstream_rpki_validation_result_insert_pfx(&elem->annotations.rpki_validation_result, res_reasoned.reason[i].asn, (bgpstream_pfx_t*)&pfx);
+          snprintf(valid_prefix, sizeof(valid_prefix), "%s/%"PRIu8, prefix, res_reasoned.reason[i].min_len);
+    
+          bgpstream_pfx_t pfx;
+          bgpstream_str2pfx(valid_prefix, (bgpstream_pfx_storage_t*)&pfx);
+          bgpstream_rpki_validation_result_insert_pfx(&elem->annotations.rpki_validation_result, res_reasoned.reason[i].asn, &pfx, res_reasoned.reason[i].max_len);
         }
       }
 		free(res_reasoned.reason);

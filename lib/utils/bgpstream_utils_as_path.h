@@ -90,14 +90,25 @@ typedef struct bgpstream_as_path bgpstream_as_path_t;
  *
  * @{ */
 
+/** A BGP Stream object for valid prefixes in RPKI validation result */
+typedef struct struct_bgpstream_rpki_validation_pfx_t{
+
+  /** prefixes */
+  bgpstream_pfx_storage_t pfx;
+
+  /** maximum prefix length */
+  uint8_t max_pfx_len;
+
+} bgpstream_rpki_validation_pfx_t;
+
 /** A BGP Stream object for valid ASNs and prefixes in RPKI validation result */
 typedef struct struct_bgpstream_rpki_validation_asn_pfx_t{
 
   /** ASN */
   uint32_t asn;
 
-  /** prefixes */
-  bgpstream_pfx_t **pfx;
+  /** prefixes and lengths */
+  bgpstream_rpki_validation_pfx_t * pfxs;
 
   /** number of prefixes */
   size_t pfx_used;
@@ -406,9 +417,10 @@ void bgpstream_rpki_validation_result_insert_asn(bgpstream_rpki_validation_resul
  * @param asn_arr       pointer to bgpstream_rpki_validation_result
  * @param asn_seg       the ASN to which the prefix will be added
  * @param pfx           pointer to the prefix
+ * @param max_pfx_len   maximum prefix length
  */
 void bgpstream_rpki_validation_result_insert_pfx(bgpstream_rpki_validation_result_t *asn_arr,
-                               uint32_t asn_seg, bgpstream_pfx_t *pfx);
+                               uint32_t asn_seg, bgpstream_pfx_t * pfx, uint8_t max_pfx_len);
 
 /** Free the memory used by the RPKI validation result
  *
