@@ -640,6 +640,10 @@ int main(int argc, char *argv[])
                     {
                       goto err;
                     }
+      if(bs_elem->annotations.rpki_validation_status != BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED){
+  
+                    bgpstream_rpki_validation_result_free(&bs_elem->annotations.rpki_validation_result);
+      }
 		}
               /* check if end of RIB has been reached */
               if(bs_record->attributes.dump_type == BGPSTREAM_RIB &&

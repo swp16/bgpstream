@@ -587,19 +587,19 @@ void bgpstream_rpki_validation_result_init(bgpstream_rpki_validation_result_t *a
   asn_arr->asn_size = size;
 
   for (int i = 0; i < size; i++){
-      bgpstream_rpki_validation_asn_pfx_t asn_pfx;
-      asn_arr->asn_pfx[i] = asn_pfx;
-      asn_arr->asn_pfx[i].pfxs = malloc(size * sizeof(bgpstream_rpki_validation_asn_pfx_t));
+    bgpstream_rpki_validation_asn_pfx_t asn_pfx;
+    asn_arr->asn_pfx[i] = asn_pfx;
+    asn_arr->asn_pfx[i].pfxs = malloc(size * sizeof(bgpstream_rpki_validation_asn_pfx_t));
 
-      bgpstream_pfx_storage_t pfx;
+    bgpstream_pfx_storage_t pfx;
 
-      for (int j = 0; j < size; j++){
-        asn_arr->asn_pfx[i].pfxs[j].pfx = pfx;
-        asn_arr->asn_pfx[i].pfxs[j].max_pfx_len = 0;
-      }
+    for (int j = 0; j < size; j++){
+      asn_arr->asn_pfx[i].pfxs[j].pfx = pfx;
+      asn_arr->asn_pfx[i].pfxs[j].max_pfx_len = 0;
+    }
 
-      asn_arr->asn_pfx[i].pfx_used = 0;
-      asn_arr->asn_pfx[i].pfx_size = size;
+    asn_arr->asn_pfx[i].pfx_used = 0;
+    asn_arr->asn_pfx[i].pfx_size = size;
   }
 }
 

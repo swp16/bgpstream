@@ -460,7 +460,6 @@ int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bg
     snprintf(result_output, sizeof(result_output), "%s%s", result_output, "notfound");
   }
 
-  bgpstream_rpki_validation_result_free(&elem->annotations.rpki_validation_result);
   return snprintf(buf, len, "%s", result_output);
 }
 
@@ -523,7 +522,7 @@ void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem)
           bgpstream_rpki_validation_result_insert_pfx(&elem->annotations.rpki_validation_result, res_reasoned.reason[i].asn, &pfx, res_reasoned.reason[i].max_len);
         }
       }
-		free(res_reasoned.reason);
+		  free(res_reasoned.reason);
     }
   }
 }
