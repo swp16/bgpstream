@@ -292,7 +292,7 @@ int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bg
  *
  * @param elem       the elem which will be validated
  */
-void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem);
+void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem, char * prefix, uint32_t origin_asn, uint8_t mask_len);
 #endif
 
 /** @} */
