@@ -10,7 +10,6 @@
 #include <arpa/inet.h>
 #include <stdbool.h>
 #include <string.h>
-#include <math.h>
 
 #define TEST_MIN_LEN 24
 #define TEST_MAX_LEN 24
@@ -26,6 +25,7 @@
 #define TEST_RPKI_VALIDATOR_PORT "8282"
 
 #if defined(FOUND_RTR)
+#include <math.h>
 int test_rtr_validation()
 {
   cfg_tr = bgpstream_rtr_start_connection(TEST_RPKI_VALIDATOR_URL, TEST_RPKI_VALIDATOR_PORT, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -106,6 +106,7 @@ int test_val_res_struct()
     CHECK("RTR: Compare asn in prefix array after adding asn", val_table.asn_pfx[x].asn == (asn + x) );
     CHECK("RTR: Compare number of used prefix after adding asn", val_table.asn_pfx[x].pfx_used == 0);
     CHECK("RTR: Compare max number of prefix after adding asn", val_table.asn_pfx[x].pfx_size == 2);
+
     bgpstream_rpki_validation_result_insert_asn( &val_table, asn + x);
     CHECK("RTR: Compare used asn size after adding duplicate asn", val_table.asn_used == (x+1) );
     CHECK("RTR: Compare max asn size after adding duplicate asn", val_table.asn_size == fmax(2, pow(2, ceil( log(x+1)/log(2)))) );
@@ -121,8 +122,8 @@ int test_val_res_struct()
       CHECK("RTR: Compare max number of prefix of asn after adding prefix", val_table.asn_pfx[x].pfx_size == fmax(2,pow(2, ceil( log(y+1)/log(2)))) );
       CHECK("RTR: Compare prefix in prefix array of asn after adding prefix", inet_ntoa(val_table.asn_pfx[x].pfxs[y].pfx.address.ipv4) == inet_ntoa(pfxv4.ipv4) );
       CHECK("RTR: Compare max len of prefix of asn after adding prefix", val_table.asn_pfx[x].pfxs[y].max_pfx_len== (max_pfx_len - y) );
-      /*
-	  bgpstream_rpki_validation_result_insert_pfx( &val_table, asn + x, (bgpstream_pfx_t*)&pfxv4, max_pfx_len - y);
+
+      bgpstream_rpki_validation_result_insert_pfx( &val_table, asn + x, (bgpstream_pfx_t*)&pfxv4, max_pfx_len - y);
       CHECK("RTR: Compare used asn size after adding duplicate prefix", val_table.asn_used == (x+1) );
       CHECK("RTR: Compare max asn size after adding duplicate prefix", val_table.asn_size == fmax(2, pow(2, ceil( log(x+1)/log(2)))) );
       CHECK("RTR: Compare asn after adding duplicate prefix", val_table.asn_pfx[x].asn == (asn + x) );
@@ -130,8 +131,7 @@ int test_val_res_struct()
       CHECK("RTR: Compare max number of prefix of asn after adding duplicate prefix", val_table.asn_pfx[x].pfx_size == fmax(2, pow(2, ceil( log(y+1)/log(2)))) );
       CHECK("RTR: Compare prefix in prefix array of asn after adding duplicate prefix", inet_ntoa(val_table.asn_pfx[x].pfxs[y].pfx.address.ipv4) == inet_ntoa(pfxv4.ipv4) );
       CHECK("RTR: Compare max len of prefix of asn after adding duplicate prefix", val_table.asn_pfx[x].pfxs[y].max_pfx_len== (max_pfx_len - y) );
-      */
-	}
+    }
   }
   bgpstream_rpki_validation_result_free( &val_table);
   
@@ -176,17 +176,6 @@ int test_validation_process()
       } 
     }
   }
-  /*
-  CHECK("RTR: Compare used asn size after adding prefix", val_table.asn_used == 1 );
-  CHECK("RTR: Compare max asn size after adding prefix", val_table.asn_size == 2 );
-  CHECK("RTR: Compare asn after adding  prefix", val_table.asn_pfx[0].asn == pfx_v4.asn );
-  fprintf(stderr, "%d : %d", inet_ntoa(val_table.asn_pfx[0].pfxs[0].pfx.address.ipv4), 1);
-  CHECK("RTR: Compare number of used prefix of asn after adding prefix", val_table.asn_pfx[0].pfx_used == 1 );
-  CHECK("RTR: Compare max number of prefix of asn after adding prefix", val_table.asn_pfx[0].pfx_size == 2 );
-  fprintf(stderr, "%s : %s",  inet_ntoa(val_table.asn_pfx[0].pfxs[0].pfx.address.ipv4), ipv4_address);
-  CHECK("RTR: Compare prefix in prefix array of asn after adding prefix", inet_ntoa(val_table.asn_pfx[0].pfxs[0].pfx.address.ipv4) == ipv4_address );
-  CHECK("RTR: Compare max len of prefix of asn after adding prefix", val_table.asn_pfx[0].pfxs[0].max_pfx_len== pfx_v4.max_len );
-  */
   return 0;
 }
 #endif
