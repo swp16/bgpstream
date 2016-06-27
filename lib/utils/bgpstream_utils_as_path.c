@@ -636,17 +636,16 @@ void bgpstream_rpki_validation_result_insert_asn(bgpstream_rpki_validation_resul
 }
 
 void bgpstream_rpki_validation_result_insert_pfx(bgpstream_rpki_validation_result_t *asn_arr, uint32_t asn_seg, bgpstream_pfx_t * pfx, uint8_t max_pfx_len) {
-          
   int seg = 0;
   for (int i = 0; i < asn_arr->asn_size; i++){
       if(asn_arr->asn_pfx[i].asn == asn_seg){
-            seg = i;  
+            seg = i;
       }
   }
 
   bool exist = false;
   for (int i = 0; i < asn_arr->asn_pfx[seg].pfx_used; i++){
-    if(bgpstream_pfx_storage_equal(&asn_arr->asn_pfx[seg].pfxs[i].pfx, (bgpstream_pfx_storage_t *)&pfx) != 0 && asn_arr->asn_pfx[seg].pfxs[i].max_pfx_len == max_pfx_len){
+    if(bgpstream_pfx_equal((bgpstream_pfx_t*)&asn_arr->asn_pfx[seg].pfxs[i].pfx, pfx) != 0 && asn_arr->asn_pfx[seg].pfxs[i].max_pfx_len == max_pfx_len){
       exist = true;
     }
   }
