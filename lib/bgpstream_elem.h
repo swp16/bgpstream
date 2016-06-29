@@ -110,17 +110,16 @@ typedef enum {
 typedef enum {
 
   /** Valid */
-  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_VALID          = 1,
+  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_VALID = 1,
 
   /** Invalid */
-  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_INVALID        = 0,
+  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_INVALID = 0,
 
   /** Not found */
-  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND       = -1,
+  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTFOUND = -1,
 
   /** Not validated */
-  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED   = 2,
-
+  BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED = 2,
 
 } bgpstream_validation_status_type_t;
 
@@ -132,7 +131,7 @@ typedef enum {
  * @{ */
 
 /** A BGP Stream Elem object for Annotations */
-typedef struct struct_bgpstream_elem_annotations_t{
+typedef struct struct_bgpstream_elem_annotations_t {
 
   /** RPKI validation status
    *
@@ -286,13 +285,17 @@ char *bgpstream_elem_snprintf(char *buf, size_t len,
  *
  * @param elem       the elem whose RPKI validation result will be printed
  */
-int bgpstream_elem_get_rpki_validation_result_snprintf(char *buf, size_t len, bgpstream_elem_t const *elem);
+int bgpstream_elem_get_rpki_validation_result_snprintf(
+    char *buf, size_t len, bgpstream_elem_t const *elem);
 
 /** Get the result of the RPKI-Validation for the elem
  *
  * @param elem       the elem which will be validated
  */
-void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem, char * prefix, uint32_t origin_asn, uint8_t mask_len);
+void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem,
+                                               char *prefix,
+                                               uint32_t origin_asn,
+                                               uint8_t mask_len);
 #endif
 
 /** @} */

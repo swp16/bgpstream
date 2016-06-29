@@ -404,20 +404,24 @@ void bgpstream_set_live_mode(bgpstream_t *bs) {
 #if defined(FOUND_RTR)
 /* Get the RTR-Socket & configuration
 */
-struct rtr_mgr_config *bgpstream_get_rtr_config() {
+struct rtr_mgr_config *bgpstream_get_rtr_config()
+{
   return cfg_tr;
 }
 
 /* Set the RTR-Configuration
 */
-int bgpstream_set_rtr_config(char *host, char *port, char *ssh_user, char *ssh_hostkey, char *ssh_privatekey, bool active){
+int bgpstream_set_rtr_config(char *host, char *port, char *ssh_user,
+                             char *ssh_hostkey, char *ssh_privatekey,
+                             bool active)
+{
   rtr_server_conf.host = host;
   rtr_server_conf.port = port;
   rtr_server_conf.ssh_user = ssh_user;
   rtr_server_conf.ssh_hostkey = ssh_hostkey;
   rtr_server_conf.ssh_privatekey = ssh_privatekey;
   rtr_server_conf.active = active;
-  
+
   return 0;
 }
 #endif
@@ -429,13 +433,14 @@ int bgpstream_set_rtr_config(char *host, char *port, char *ssh_user, char *ssh_h
 */
 int bgpstream_start(bgpstream_t *bs) {
   bgpstream_debug("BS: init start");
-  #if defined(FOUND_RTR)
-  if(rtr_server_conf.active){
-    cfg_tr = bgpstream_rtr_start_connection(rtr_server_conf.host, rtr_server_conf.port,
-                                            NULL, NULL, NULL, rtr_server_conf.ssh_user,
-                                            rtr_server_conf.ssh_hostkey, rtr_server_conf.ssh_privatekey);
+#if defined(FOUND_RTR)
+  if (rtr_server_conf.active) {
+    cfg_tr = bgpstream_rtr_start_connection(
+        rtr_server_conf.host, rtr_server_conf.port, NULL, NULL, NULL,
+        rtr_server_conf.ssh_user, rtr_server_conf.ssh_hostkey,
+        rtr_server_conf.ssh_privatekey);
   }
-  #endif
+#endif
   if(bs == NULL || (bs != NULL && bs->status != BGPSTREAM_STATUS_ALLOCATED)) {
     return 0; // nothing to init
   }
@@ -520,12 +525,12 @@ int bgpstream_get_next_record(bgpstream_t *bs,
 /* turn off the bgpstream interface */
 void bgpstream_stop(bgpstream_t *bs) {
   bgpstream_debug("BS: close start");
-  #if defined(FOUND_RTR)
-  if(rtr_server_conf.active){
+#if defined(FOUND_RTR)
+  if (rtr_server_conf.active) {
     bgpstream_rtr_close_connection(cfg_tr);
     rtr_server_conf.active = false;
   }
-  #endif
+#endif
   if(bs == NULL || (bs != NULL && bs->status != BGPSTREAM_STATUS_ON)) {
     return; // nothing to close
   }

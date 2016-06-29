@@ -254,59 +254,62 @@ int main(int argc, char *argv[])
       switch (opt)
 	{
 
-	case 'R':
-    #if !defined(FOUND_RTR)
-    fprintf(stderr, "ERROR: Could not validate the BGPStream because RTRlib is not installed\n");
-    exit(-1);
-    #endif
-
-    #if defined(FOUND_RTR)
-    rtr_cnt++;
-    if(rtr_cnt == RTR_MAX_CNT) {
-        print_err_message(RTR_MAX_CNT-1,"maximum","parameters");
-	  }
-    
-    for(int i = 0; i < RTR_MAX_CNT; i++){
-      rtr[i] = NULL;
-    }
-
-    arg = strtok(optarg, ","); 
-    while(arg != NULL) {
-      rtr[rtr_cnt_arg++] = arg;
-      if(rtr_cnt_arg == RTR_MAX_CNT+1){
-        print_err_message(RTR_MAX_CNT,"maximum","arguments");
-      }
-      arg = strtok(NULL, ",");
-    }
-
-    host = rtr[0];
-    port = rtr[1];
-
-    #if defined(FOUND_SSH)
-    ssh_user = rtr[2];
-    ssh_hostkey = rtr[3];
-    ssh_privatekey = rtr[4];
-
-    if(ssh_user != NULL && (ssh_hostkey == NULL || ssh_privatekey == NULL)){
-      fprintf(stderr, "ERROR: The SSH-values are incomplete\n");
+case 'R':
+#if !defined(FOUND_RTR)
+      fprintf(stderr, "ERROR: Could not validate the BGPStream because RTRlib "
+                      "is not installed\n");
       exit(-1);
-    }
-    #endif /*FOUND_SSH */
+#endif
 
-    if(!host||!port){
-      print_err_message(RTR_MAX_CNT,"minimum","arguments");
-	  }
+#if defined(FOUND_RTR)
+      rtr_cnt++;
+      if (rtr_cnt == RTR_MAX_CNT) {
+        print_err_message(RTR_MAX_CNT - 1, "maximum", "parameters");
+      }
 
-    #if !defined(FOUND_SSH)
-    if(rtr[2] != NULL || rtr[3] != NULL || rtr[4] != NULL){
-      fprintf(stderr, "Warning: RTR-Library is not compiled with SSH-Support, TCP is used instead\n");
-    }
-    #endif /*NOTFOUND_SSH */
+      for (int i = 0; i < RTR_MAX_CNT; i++) {
+        rtr[i] = NULL;
+      }
 
-    bgpstream_set_rtr_config(host, port, ssh_user, ssh_hostkey, ssh_privatekey, true);
-    #endif  /*FOUND_RTR */
-	  break;
-  
+      arg = strtok(optarg, ",");
+      while (arg != NULL) {
+        rtr[rtr_cnt_arg++] = arg;
+        if (rtr_cnt_arg == RTR_MAX_CNT + 1) {
+          print_err_message(RTR_MAX_CNT, "maximum", "arguments");
+        }
+        arg = strtok(NULL, ",");
+      }
+
+      host = rtr[0];
+      port = rtr[1];
+
+#if defined(FOUND_SSH)
+      ssh_user = rtr[2];
+      ssh_hostkey = rtr[3];
+      ssh_privatekey = rtr[4];
+
+      if (ssh_user != NULL && (ssh_hostkey == NULL || ssh_privatekey == NULL)) {
+        fprintf(stderr, "ERROR: The SSH-values are incomplete\n");
+        exit(-1);
+      }
+#endif /*FOUND_SSH */
+
+      if (!host || !port) {
+        print_err_message(RTR_MAX_CNT, "minimum", "arguments");
+      }
+
+#if !defined(FOUND_SSH)
+      if (rtr[2] != NULL || rtr[3] != NULL || rtr[4] != NULL) {
+        fprintf(stderr, "Warning: RTR-Library is not compiled with "
+                        "SSH-Support, TCP is used instead\n");
+      }
+#endif /*NOTFOUND_SSH */
+
+      bgpstream_set_rtr_config(host, port, ssh_user, ssh_hostkey,
+                               ssh_privatekey, true);
+#endif /*FOUND_RTR */
+      break;
+
 	case 'p':
 	  if(projects_cnt == PROJECT_CMD_CNT)
 	    {
@@ -680,14 +683,13 @@ int main(int argc, char *argv[])
 
 static char record_buf[65536];
 
-static void print_err_message(int args, char* minmax, char* type)
+static void print_err_message(int args, char *minmax, char *type)
 {
-    fprintf(stderr,
-      "ERROR: A %s of %d %s %s be specified on "
-      "the command line\n",
-      minmax, args, type, (minmax == "maximum") ? "can" : "must");
-    usage();
-    exit(-1);
+  fprintf(stderr, "ERROR: A %s of %d %s %s be specified on "
+                  "the command line\n",
+          minmax, args, type, (minmax == "maximum") ? "can" : "must");
+  usage();
+  exit(-1);
 }
 
 static void print_bs_record(bgpstream_record_t *bs_record)

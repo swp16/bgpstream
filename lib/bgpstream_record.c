@@ -176,44 +176,43 @@ bgpstream_elem_t *bgpstream_record_get_next_elem(bgpstream_record_t *record) {
    * bgpstream_record_get_next_elem(record) */
   if(elem == NULL || bgpstream_elem_check_filters(record->bs->filter_mgr, elem) == 1)
   {
-    #if defined(FOUND_RTR)
-    if(elem != NULL && bgpstream_get_rtr_config() != NULL)
-    {
-      elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED;
+#if defined(FOUND_RTR)
+    if (elem != NULL && bgpstream_get_rtr_config() != NULL) {
+      elem->annotations.rpki_validation_status =
+          BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED;
 
       char prefix[INET6_ADDRSTRLEN];
       bgpstream_pfx_t *addr_pfx;
 
-      switch(elem->prefix.address.version)
-      {
-        case BGPSTREAM_ADDR_VERSION_IPV4:
-          addr_pfx = (bgpstream_pfx_t*)&(elem->prefix);
-          bgpstream_addr_ntop(prefix, INET_ADDRSTRLEN, &(addr_pfx->address));
-          break;
+      switch (elem->prefix.address.version) {
+      case BGPSTREAM_ADDR_VERSION_IPV4:
+        addr_pfx = (bgpstream_pfx_t *)&(elem->prefix);
+        bgpstream_addr_ntop(prefix, INET_ADDRSTRLEN, &(addr_pfx->address));
+        break;
 
-        case BGPSTREAM_ADDR_VERSION_IPV6:
-          addr_pfx = (bgpstream_pfx_t*)&(elem->prefix);
-          bgpstream_addr_ntop(prefix, INET6_ADDRSTRLEN, &(addr_pfx->address));
-          break;
+      case BGPSTREAM_ADDR_VERSION_IPV6:
+        addr_pfx = (bgpstream_pfx_t *)&(elem->prefix);
+        bgpstream_addr_ntop(prefix, INET6_ADDRSTRLEN, &(addr_pfx->address));
+        break;
 
-        default:
-          addr_pfx = NULL;
-          break;
-
+      default:
+        addr_pfx = NULL;
+        break;
       }
-      if(addr_pfx != NULL)
-      {
+      if (addr_pfx != NULL) {
         uint32_t origin_asn = 0;
-        bgpstream_as_path_seg_t *origin_seg = bgpstream_as_path_get_origin_seg(elem->aspath);
-        if (origin_seg != NULL && origin_seg->type == BGPSTREAM_AS_PATH_SEG_ASN)
-        {
-          origin_asn = ((bgpstream_as_path_seg_asn_t*)origin_seg)->asn;
+        bgpstream_as_path_seg_t *origin_seg =
+            bgpstream_as_path_get_origin_seg(elem->aspath);
+        if (origin_seg != NULL &&
+            origin_seg->type == BGPSTREAM_AS_PATH_SEG_ASN) {
+          origin_asn = ((bgpstream_as_path_seg_asn_t *)origin_seg)->asn;
         }
 
-        bgpstream_elem_get_rpki_validation_result(elem, prefix, origin_asn, elem->prefix.mask_len);
+        bgpstream_elem_get_rpki_validation_result(elem, prefix, origin_asn,
+                                                  elem->prefix.mask_len);
       }
     }
-    #endif
+#endif
     return elem;
   }
 
