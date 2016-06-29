@@ -144,36 +144,55 @@ int test_validation_process()
   
   cfg_tr = bgpstream_rtr_start_connection(rtr_server_conf.host, rtr_server_conf.port, NULL, NULL, NULL, NULL, NULL, NULL);
   struct pfx_table *pfxt = cfg_tr->groups[0].sockets[0]->pfx_table;
-  struct pfx_record pfx_v4;
-  char ipv4_address[INET_ADDRSTRLEN];
-  pfx_v4.min_len = TEST_MIN_LEN;
-  pfx_v4.max_len = TEST_MAX_LEN;
-  pfx_v4.socket = TEST_SOCKET;
-  pfx_v4.asn = TEST_ASN;
-  strcpy( ipv4_address, TEST_IP_ADDR);
-  lrtr_ip_str_to_addr( ipv4_address, &pfx_v4.prefix);
-  CHECK("RTR: Add a valid pfx_record to pfx_table", pfx_table_add(pfxt, &pfx_v4) == PFX_SUCCESS);
-  
   bgpstream_elem_t *elem = bgpstream_elem_create();
   elem->annotations.rpki_validation_status = BGPSTREAM_ELEM_RPKI_VALIDATION_STATUS_NOTVALIDATED;
   
-  bgpstream_elem_get_rpki_validation_result(elem, ipv4_address, pfx_v4.asn, pfx_v4.max_len);
+  uint8_t number_of_tests = 3;
+  uint8_t pfxs_size = pow(number_of_tests, 2);
+  struct pfx_record pfxs[pfxs_size];
+  
+  int test_asn_index;
+  for( test_asn_index = 0; test_asn_index < number_of_tests; test_asn_index++){
+    int test_pfx_index;
+    for( test_pfx_index = 0; test_pfx_index < number_of_tests; test_pfx_index++)
+    {  
+      struct pfx_record pfx;
+      pfx.min_len = TEST_MIN_LEN - test_pfx_index;
+      pfx.max_len = TEST_MAX_LEN - test_pfx_index;
+      pfx.socket = TEST_SOCKET;
+      pfx.asn = TEST_ASN + test_asn_index;
+      char ip_address[INET_ADDRSTRLEN];
+      strcpy( ip_address, TEST_IP_ADDR);
+      lrtr_ip_str_to_addr( ip_address, &pfx.prefix);
+      CHECK("RTR: Add a valid pfx_record to pfx_table", pfx_table_add(pfxt, &pfx) == PFX_SUCCESS);
+      pfxs[(test_asn_index*number_of_tests)+test_pfx_index] = pfx;
+      bgpstream_elem_get_rpki_validation_result(elem, ip_address, pfx.asn, pfx.max_len);
+    }
+  }
+  
   bgpstream_rpki_validation_result_t val_table;
   val_table = elem->annotations.rpki_validation_result;
-  int i;
-  for( i = 0; i < val_table.asn_used; i++){
-    if( val_table.asn_pfx[i].asn == pfx_v4.asn)
+  int test_index;
+  for( test_index = 0; test_index < pfxs_size; test_index++)
+  {
+    int asn_index;
+    for( asn_index = 0; asn_index < val_table.asn_used; asn_index++)
     {
-      CHECK("RTR: Inspect result struct to find added asn", true);
-      int j;
-      for( j = 0; j < val_table.asn_pfx[i].pfx_used; j++)
+      if( val_table.asn_pfx[asn_index].asn == pfxs[test_index].asn)
       {
-        if( inet_ntoa(val_table.asn_pfx[i].pfxs[j].pfx.address.ipv4) == ipv4_address)
+        CHECK("RTR: Inspect result struct to find added asn", true);
+        int pfx_index;
+        for( pfx_index = 0; pfx_index < val_table.asn_pfx[asn_index].pfx_used; pfx_index++)
         {
-          CHECK("RTR: Inspect result struct to find added pfx", true);
-          CHECK("RTR: Compare max len of prefix ", val_table.asn_pfx[i].pfxs[j].max_pfx_len== pfx_v4.max_len );
-        }
-      } 
+          char pfx_string[INET6_ADDRSTRLEN];
+          lrtr_ip_addr_to_str (&pfxs[test_index].prefix, pfx_string, INET6_ADDRSTRLEN);
+          if( inet_ntoa(val_table.asn_pfx[asn_index].pfxs[pfx_index].pfx.address.ipv4) ==  pfx_string)
+          {
+            CHECK("RTR: Inspect result struct to find added pfx", true);
+            CHECK("RTR: Compare max len of prefix ", val_table.asn_pfx[asn_index].pfxs[pfx_index].max_pfx_len ==  pfxs[test_index].max_len );
+          }
+        } 
+      }
     }
   }
   return 0;
