@@ -512,14 +512,15 @@ void bgpstream_elem_get_rpki_validation_result(bgpstream_elem_t *elem,
       bgpstream_rpki_validation_result_init(
           &elem->annotations.rpki_validation_result, 2);
       char valid_prefix[INET6_ADDRSTRLEN];
+      char reason_prefix[INET6_ADDRSTRLEN];
 
       for (int i = 0; i < res_reasoned.reason_len; i++) {
         bgpstream_rpki_validation_result_insert_asn(
             &elem->annotations.rpki_validation_result,
             res_reasoned.reason[i].asn);
-        lrtr_ip_addr_to_str(&(res_reasoned.reason[i].prefix), prefix,
-                            sizeof(prefix));
-        snprintf(valid_prefix, sizeof(valid_prefix), "%s/%" PRIu8, prefix,
+        lrtr_ip_addr_to_str(&(res_reasoned.reason[i].prefix), reason_prefix,
+                            sizeof(reason_prefix));
+        snprintf(valid_prefix, sizeof(valid_prefix), "%s/%" PRIu8, reason_prefix,
                  res_reasoned.reason[i].min_len);
 
         bgpstream_pfx_t pfx;
